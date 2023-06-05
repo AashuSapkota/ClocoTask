@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -7,13 +7,108 @@ from django.db import transaction
 from django.contrib.auth.hashers import make_password
 from .serializers import UserSerializer
 from rest_framework import status
+from django.contrib.auth import authenticate, login, logout
+import json
+import requests
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import permission_classes
+from rest_framework_simplejwt.tokens import RefreshToken
 
+
+class UserLogin(APIView):
+    template_name = 'registration/login.html'
+    permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+    
+    def post(self, request, *args, **kwargs):
+        email = request.data['email']
+        password = request.data['password']
+        password_hash = make_password(password)
+        current_domain = request.build_absolute_uri('/')
+        target_path = '/api/token/'
+        token_url = current_domain.rstrip('/') + target_path
+        print(token_url)
+        payload = {
+            "email": email,
+            "password": password
+        }
+        try:
+            usr = User.objects.get(email=email)
+            if usr:
+                try:
+                    response = requests.post(token_url, data=payload)
+                    json_data = json.loads(response.text)
+                    print(json_data)
+                    if response.status_code == 401:
+                        return Response(
+                            {
+                                'Status':'Error',
+                                'Message':'Invalid Username or Password' 
+                            },
+                            status=response.status_code)
+                    elif response.status_code == 200:
+                        return Response(
+                            {
+                                'Status':'Success',
+                                'Message':json_data
+                            },
+                            status=response.status_code)
+                    else:
+                        return Response(
+                            {
+                                'Status':'Error',
+                                'Message':'Something Went Wrong'
+                            },
+                            status=500
+                        )
+                except Exception as e:
+                    return Response(
+                            {
+                                'Status':'Error',
+                                'Message':str(e)
+                            },
+                            status=500
+                        )
+        except Exception as e:
+                return Response(
+                            {
+                                'Status':'Error',
+                                'Message':str(e)
+                            },
+                            status=500
+                        )
+
+
+class UserLogout(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            try:
+                token.blacklist()
+            except Exception as e:
+                print(str(e))
+            return Response({"Status":"Success", "Message":"User Logged Out Succesfully"}, status=200)
+        except Exception as e:
+            return Response({"Status":"Error", "Message":str(e)}, status=200)
 
 class ListUsersAPI(APIView):
     pagination_class = PageNumberPagination
     serializer_class = UserSerializer
+    template_name = 'users/list_users.html'
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return []
 
     def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+    
+    def post(self, request, *args, **kwargs):
         users = User.objects.all()
         paginator = self.pagination_class()
         paginator.page_size = 2
@@ -23,7 +118,12 @@ class ListUsersAPI(APIView):
 
 
 class RegisterUserAPI(APIView):
+    template_name = 'users/register_user.html'
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
     def post(self, request, *args, **kwargs):
+        print(request.data)
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -32,29 +132,53 @@ class RegisterUserAPI(APIView):
 
 
 class UpdateUserAPI(APIView):
-    def put(self, request, user_id, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response({'Status': 'Error', 'Message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+    template_name='users/update_user.html'
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return []
+    
+    def get(self, request, *args, **kwargs):
+        id = kwargs['user_id']
         try:
-            user = User.objects.get(pk=user_id)
+            usr = User.objects.get(id=id)
+            print('user exists:',usr)
+            return render(request, self.template_name, {'user':usr})
+        except Exception as e:
+            print(str(e))
+            print('user does not exists')
+    def put(self, request, *args, **kwargs):
+        id = kwargs['user_id']
+        try:
+            user = User.objects.get(pk=id)
             serializer = UserSerializer(user, data=request.data)
             if serializer.is_valid():
+                print('valid')
                 serializer.save()
-                return Response(serializer.data)
+                # return Response(serializer.data)
+                return Response({'Status': 'Success', 'Message': 'User Updated Succesfully'}, status=200)
             else:
                 return Response({'Status': 'Error', 'Message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'Status': 'Error', 'Message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'Status': 'Error', 'Message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class DeleteUserAPI(APIView):
-    def delete(self, request, user_id, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response({'Status': 'Error', 'Message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+    permission_classes = [IsAuthenticated]
+    # def get_permissions(self):
+    #     if self.request.method == 'delete':
+    #         return [IsAuthenticated()]
+    #     return []
 
+    def delete(self, request, user_id, *args, **kwargs):
         try:
             user = User.objects.get(pk=user_id)
             user.delete()
+            return Response({'Status': 'Success', 'Message': 'User Deleted Successfully'}, status=200)
 
         except Exception as e:
             return Response({'Status': 'Error', 'Message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
