@@ -20,4 +20,19 @@ class Artists(models.Model):
         ordering = ('name',)
         verbose_name = 'artist'
         verbose_name_plural = 'artists'
-    
+
+
+class Music(models.Model):
+    GENRE_CHOICES = [
+        ('rnb', 'rnb'),
+        ('co', 'country'),
+        ('c', 'classic'),
+        ('r', 'rock'),
+        ('j', 'jazz'),
+    ]
+    artist_id = models.IntegerField()
+    title = models.CharField(max_length=255)
+    album_name = models.CharField(max_length=255)
+    genre = models.CharField(max_length=5, choices=GENRE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

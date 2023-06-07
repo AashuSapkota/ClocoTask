@@ -1,0 +1,111 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+<div class="container-fluid mt--6">
+    <div class="row">
+      <div class="col-xl-8">
+        <div class="card bg-default">
+          <div class="card-header bg-transparent">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="h3 text-white mb-0 text-uppercase">
+                  Music List
+                </h5>
+              </div>
+              <div class="col text-right">
+                <h5 class="h3 text-white mb-0 text-uppercase">
+                    <a href="{% url 'artists:register_artist_music' %}" class="btn btn-primary">Create Artist</a>
+                </h5>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <table class="table" id="music-table">
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock body %}
+{% block js %}
+<script>
+    const loginUrl = "{% url 'users:login' %}"
+    const listUrl = "{% url 'artists:list_artist_music' %}"
+    $(document).ready(function () {
+        console.log('here')
+        const accessToken = localStorage.getItem('access_token');
+        var table = document.getElementById('music-table');
+        $.ajax({
+            url: listUrl,
+            type: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            },
+            success: function (response) {
+                console.log(response)
+                table.innerHTML = '';
+                var thead = document.createElement('thead');
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<th scope="col">Artist</th><th scope="col">Title</th><th scope="col">Album</th><th scope="col">Genre</th><th scope="col">Actions</th>';
+                thead.appendChild(tr);
+                table.appendChild(thead);
+
+                // Create table body
+                var tbody = document.createElement('tbody');
+                response.results.forEach(function (music) {
+                    var tr = document.createElement('tr');
+                    var editUrl = "";
+                    console.log(editUrl)
+                    var deleteUrl = "";
+                    console.log(deleteUrl)
+                    tr.innerHTML = '<td>' + music.artist_name + 
+                        '</td><td>' + music.title +
+                        '</td><td>' + music.album_name +
+                        '</td><td>' + music.genre +
+                        '</td>' + '<td><a class="edit-button" href="' + editUrl + '">Edit</a>' +
+                        " " + '<a class="delete-button" href="' + deleteUrl + '" data-deleteurl="' + deleteUrl + '">Delete</a><td>' +
+                        '<td hidden class="artist_id">' + music.id + '</td>';
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                if (xhr.status == 401) {
+                    window.location.href = loginUrl;
+                };
+            }
+        })
+    });
+
+    var table = document.getElementById('music-table');
+    table.addEventListener('click', function (event) {
+        if (event.target.classList.contains('delete-button')) {
+            event.preventDefault();
+            var confirmDelete = confirm('Are you sure you want to delete this artist?');
+            if (confirmDelete) {
+                var deleteUrl = event.target.dataset.deleteurl;
+                var accessToken = localStorage.getItem('access_token');
+                console.log("deleteurl: ", deleteUrl)
+                $.ajax({
+                    url: deleteUrl,
+                    method: 'DELETE',
+                    contentType: 'application/json',
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    },
+                    success: function (response) {
+                        console.log("Response", response.Status)
+                        if (response.Status === 'Success') {
+                            window.location.href = listUrl;
+                        }
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        console.log(xhr)
+                    }
+                })
+            }
+        }
+    });
+</script>
+{% endblock js %}

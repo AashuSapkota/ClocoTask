@@ -1,0 +1,173 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<div class="container-fluid mt--6">
+    <div class="row">
+      <div class="col-xl-8">
+        <div class="card bg-default" style="height: 100%;">
+          <div class="card-header bg-transparent">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="h3 text-white mb-0 text-uppercase">
+                    Create Artist Music
+                </h5>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <form role="form" id="musicForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <div class="input-group input-group-merge input-group-alternative mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
+                        </div>
+                        <input class="form-control" placeholder="ArtistName" id="artist_name" type="text">
+                    </div>
+                    <div id="similar_artists_dropdown" class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="similar_artists_dropdown_button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Select an artist
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="similar_artists_dropdown_button">
+                          {% for artist in similar_artists %}
+                            <a class="dropdown-item" href="#" onclick="selectArtist('{{ artist }}')">{{ artist }}</a>
+                          {% endfor %}
+                        </div>
+                      </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group input-group-merge input-group-alternative mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
+                        </div>
+                        <input class="form-control" placeholder="ArtistTitle" id="artist_title" type="text">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group input-group-merge input-group-alternative mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
+                        </div>
+                        <input class="form-control" placeholder="AlbumName" id="album_name" type="text">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group input-group-merge input-group-alternative mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="ni ni-badge"></i></span>
+                        </div>
+                        <select class="form-control" placeholder="genre" id="genre">
+                            {% for choice in genre_choices %}
+                                <option value="{{choice.0}}">{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary mt-4">Create</button>
+                </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock body %}
+
+{% block js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script>
+    $(function () {
+        $("#dob-input").datepicker({
+            maxDate: "-1d",
+            dateFormat: "yy-mm-dd" // Set desired date format
+        });
+    });
+</script>
+
+<script>
+    const similarArtistUrl = "{% url 'artists:similar_atrist' %}"
+    document.getElementById('artist_name').addEventListener('input', function(){
+        var input = this.value.trim();
+        if (input === '') {
+            document.getElementById('similar_artists_dropdown').classList.remove('show');
+            return;
+        }
+        fetch(similarArtistUrl + "?artist_name=" + input)
+            .then(response => response.json())
+            .then(data => {
+                var dropdown = document.getElementById('similar_artists_dropdown');
+                var dropdownMenu = dropdown.querySelector('.dropdown-menu');
+                dropdownMenu.innerHTML = '';
+                console.log(data);
+                data.similar_artists.forEach(function(artist) {
+                    var name = artist[0]
+                    var pk = artist[1]
+                    var a = document.createElement('a');
+                    a.classList.add('dropdown-item');
+                    a.href = '#';
+                    a.textContent = artist;
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.id = 'art_id';
+                    input.value = pk;
+                    a.onclick = function() {
+                        selectArtist(artist);
+                        return false;
+                    };
+                    a.appendChild(input);
+                    dropdownMenu.appendChild(a);
+                });
+                dropdownMenu.classList.add('show');
+            });
+    });
+
+    function selectArtist(artist) {
+        console.log(artist)
+        document.getElementById('artist_name').value = artist[0];
+        document.getElementById('similar_artists_dropdown').classList.remove('show');
+    }
+
+    const requestUrl = "{% url 'artists:register_artist_music' %}"
+    const successUrl = "{% url 'artists:list_artist_music' %}"
+    const loginUrl = "{% url 'users:login' %}"
+    $(document).ready(function () {
+        $('#musicForm').submit(function (event) {
+            event.preventDefault();
+            const accessToken = localStorage.getItem('access_token');
+            const artist_name = $('#artist_name').val();
+            const artist_title = $('#artist_title').val();
+            const album_name = $('#album_name').val();
+            const genre = $('#genre').val();
+            const art_id = $('#art_id').val();
+            const data = {
+                artist_id: art_id,
+                title: artist_title,
+                album_name: album_name,
+                genre: genre
+            };
+            console.log(data)
+            $.ajax({
+                url: requestUrl,
+                method: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                },
+                data: JSON.stringify(data),
+                success: function (response) {
+                    console.log(response)
+                    if (response.Status === 'Success') {
+                        window.location.href = successUrl;
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.log(xhr)
+                }
+            })
+        })
+    })
+</script>
+{% endblock js %}
