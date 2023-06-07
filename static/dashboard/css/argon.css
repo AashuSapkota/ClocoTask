@@ -6271,6 +6271,7 @@ input[type='button'].btn-block
     border-radius: .375rem; 
     background-color: #fff;
     background-clip: border-box;
+    height: 100%;
 }
 .card > hr
 {

@@ -60,7 +60,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="profile.html">
+              <a class="nav-link" href="{% url 'artists:list_artist' %}">
                 <i class="ni ni-circle-08 text-yellow"></i>
                 <span class="nav-link-text">Artists</span>
               </a>
@@ -143,6 +143,7 @@
     </nav>
 
     <!-- Page content -->
+    {% block body %}
     <div class="container-fluid mt--6">
       <div class="row">
         <div class="col-xl-8">
@@ -151,23 +152,20 @@
               <div class="row align-items-center">
                 <div class="col">
                   <h5 class="h3 text-white mb-0 text-uppercase">
-                    {% block pagehead %}
                     Artist Record
-                    {% endblock pagehead %}
                   </h5>
                 </div>
               </div>
             </div>
             <div class="card-body">
-              {% block body %}
               Welcome to the Artist Record Base !!
-              {% endblock body %}
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  {% endblock body %}
   <!-- Argon Scripts -->
   <!-- Core -->
   <script src="{% static 'dashboard/vendor/jquery/dist/jquery.min.js' %}"></script>
