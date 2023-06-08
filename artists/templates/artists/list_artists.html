@@ -58,6 +58,7 @@
                     var editUrl = '{% url "artists:update_artist" artist_id=0 %}'.replace('0', artist.id);
                     console.log(editUrl)
                     var deleteUrl = '{% url "artists:delete_artist" artist_id=0 %}'.replace('0', artist.id);
+                    var songsUrl = '{% url "artists:list_artist_music" artist_id=0 %}'.replace('0', artist.id);
                     console.log(deleteUrl)
                     tr.innerHTML = '<td>' + artist.name + 
                         '</td><td>' + formatDOB(artist.dob) +
@@ -66,7 +67,9 @@
                         '</td><td>' + artist.first_release_year +
                         '</td><td>' + artist.no_of_albums_released +
                         '</td>' + '<td><a class="edit-button" href="' + editUrl + '">Edit</a>' +
-                        " " + '<a class="delete-button" href="' + deleteUrl + '" data-deleteurl="' + deleteUrl + '">Delete</a><td>' +
+                        " " + '<a class="delete-button" href="' + deleteUrl + '" data-deleteurl="' + deleteUrl + '">Delete</a>' +
+                        " " + '<a class="songs-button" href="' + songsUrl + '" data-deleteurl="' + songsUrl + '">Songs</a><td>' +
+                        " " + '<td>' +
                         '<td hidden class="artist_id">' + artist.id + '</td>';
                     tbody.appendChild(tr);
                 });

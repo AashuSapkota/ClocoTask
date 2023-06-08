@@ -1,6 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 <div class="container-fluid mt--6">
+  <input type="hidden" value="{{artist_id}}" id="artist_id">
     <div class="row">
       <div class="col-xl-8">
         <div class="card bg-default">
@@ -13,7 +14,7 @@
               </div>
               <div class="col text-right">
                 <h5 class="h3 text-white mb-0 text-uppercase">
-                    <a href="{% url 'artists:register_artist_music' %}" class="btn btn-primary">Create Artist</a>
+                    <a href="{% url 'artists:register_artist_music' artist_id %}" id="add-songs" class="btn btn-primary">Add Songs</a>
                 </h5>
               </div>
             </div>
@@ -28,26 +29,34 @@
   </div>
 </div>
 {% endblock body %}
+
+
 {% block js %}
+
 <script>
+    const artistId = $('#artist_id').val();
     const loginUrl = "{% url 'users:login' %}"
-    const listUrl = "{% url 'artists:list_artist_music' %}"
+    const listUrl = '{% url "artists:list_artist_music" artist_id=0 %}'.replace('0', artistId);
     $(document).ready(function () {
         console.log('here')
         const accessToken = localStorage.getItem('access_token');
         var table = document.getElementById('music-table');
+        const data = {
+          artist_id : artistId
+        }
         $.ajax({
             url: listUrl,
             type: 'POST',
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             },
+            data: JSON.stringify(data),
             success: function (response) {
                 console.log(response)
                 table.innerHTML = '';
                 var thead = document.createElement('thead');
                 var tr = document.createElement('tr');
-                tr.innerHTML = '<th scope="col">Artist</th><th scope="col">Title</th><th scope="col">Album</th><th scope="col">Genre</th><th scope="col">Actions</th>';
+                tr.innerHTML = '<th scope="col">Title</th><th scope="col">Album</th><th scope="col">Genre</th><th scope="col">Actions</th>';
                 thead.appendChild(tr);
                 table.appendChild(thead);
 
@@ -55,11 +64,11 @@
                 var tbody = document.createElement('tbody');
                 response.results.forEach(function (music) {
                     var tr = document.createElement('tr');
-                    var editUrl = "";
+                    var editUrl = '{% url "artists:update_artist_music" music_id=0 %}'.replace('0', music.id);
                     console.log(editUrl)
-                    var deleteUrl = "";
+                    var deleteUrl = '{% url "artists:delete_artist_music" music_id=0 %}'.replace('0', music.id);
                     console.log(deleteUrl)
-                    tr.innerHTML = '<td>' + music.artist_name + 
+                    tr.innerHTML = 
                         '</td><td>' + music.title +
                         '</td><td>' + music.album_name +
                         '</td><td>' + music.genre +

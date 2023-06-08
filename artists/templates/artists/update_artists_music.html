@@ -9,21 +9,22 @@
             <div class="row align-items-center">
               <div class="col">
                 <h5 class="h3 text-white mb-0 text-uppercase">
-                    Create Artist Music
+                    Update Artist Music
                 </h5>
               </div>
             </div>
           </div>
           <div class="card-body">
             <form role="form" id="musicForm">
-                <input type="hidden" value="{{artist_id}}" id="artist_id">
+                <input type="hidden" value="{{music.id}}" id="music_id">
+                <input type="hidden" value="{{artist.id}}" id="artist_id">
                 {% csrf_token %}
                 <div class="form-group">
                     <div class="input-group input-group-merge input-group-alternative mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="ArtistTitle" id="artist_title" type="text">
+                        <input class="form-control" placeholder="ArtistTitle" id="artist_title" type="text" value="{{music.title}}">
                     </div>
                 </div>
                 <div class="form-group">
@@ -31,7 +32,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="AlbumName" id="album_name" type="text">
+                        <input class="form-control" placeholder="AlbumName" id="album_name" type="text" value="{{music.album_name}}">
                     </div>
                 </div>
                 <div class="form-group">
@@ -47,7 +48,7 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <button type="submit" class="btn btn-primary mt-4">Create</button>
+                    <button type="submit" class="btn btn-primary mt-4">Update</button>
                 </div>
             </form>
           </div>
@@ -64,7 +65,8 @@
 
 <script>
     const artistId = $('#artist_id').val();
-    const requestUrl = "{% url 'artists:register_artist_music'  artist_id=0%}".replace('0', artistId)
+    const musicId = $('#music_id').val();
+    const requestUrl = '{% url "artists:update_artist_music" music_id=0 %}'.replace('0', musicId);
     const successUrl = '{% url "artists:list_artist_music" artist_id=0 %}'.replace('0', artistId);
     const loginUrl = "{% url 'users:login' %}"
     $(document).ready(function () {
@@ -84,7 +86,7 @@
             console.log(data)
             $.ajax({
                 url: requestUrl,
-                method: 'POST',
+                method: 'PUT',
                 contentType: 'application/json',
                 headers: {
                     'Authorization': 'Bearer ' + accessToken

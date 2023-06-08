@@ -13,6 +13,8 @@ urlpatterns = [
     path('fetch/similar/', views.FetchSimilarArtist.as_view(), name='similar_atrist'),
 
     # url for music
-    path('music/register/', views.RegisterMusicAPI.as_view(), name='register_artist_music'),
-    path('music/list/', views.ListArtistMusicAPI.as_view(), name='list_artist_music'),
+    path('music/register/<int:artist_id>/', views.RegisterMusicAPI.as_view(), name='register_artist_music'),
+    path('music/list/<int:artist_id>/', views.ListArtistMusicAPI.as_view(), name='list_artist_music'),
+    path('music/update/<int:music_id>/', views.UpdateArtistMusicAPI.as_view(), name='update_artist_music'),
+    path('music/delete/<int:music_id>/', views.DeleteArtistMusicAPI.as_view(), name='delete_artist_music'),
 ]
