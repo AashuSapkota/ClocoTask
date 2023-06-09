@@ -8,8 +8,50 @@ from .models import Artists, Music
 from .serializers import ArtistSerializer, MusicSerializer
 import requests
 from rest_framework import serializers
+from rest_framework.parsers import FileUploadParser
+import csv
+from django.http import HttpResponse
 
 # Create your views here.
+
+class ArtistsUploadAPI(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, format=None):
+        try:
+            file = request.data['file']
+        except Exception as e:
+            return Response({'Status':'Error', 'Message':'No file found.'}, status=400)
+        
+        artists_data = file.read().decode('utf-8')
+        artists_list = list(csv.DictReader(artists_data.splitlines()))
+        serializer = ArtistSerializer(data=artists_list, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'Status': 'Success', 'Message': 'Artists Uploaded Successfully'}, status=201)
+        return Response({'Status':'Error', 'Message':serializer.errors}, status=400)
+
+
+class ArtistsExportAPI(APIView):
+    def get(self, request, *args, **kwargs):
+        artists = Artists.objects.all()
+
+        # create the CSV response
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="artists.csv"'
+
+        # create a csv writer
+        writer = csv.writer(response)
+
+        # write the header row
+        writer.writerow(['Name', 'DOB', 'Gender', 'Address', 'First Release Year', 'No of Albums'])
+
+        # write artist data rows
+        for artist in artists:
+            writer.writerow([artist.name, artist.dob.date(), artist.gender, artist.address, artist.first_release_year, artist.no_of_albums_released])
+        
+        return response
+
 
 class RegisterArtistAPI(APIView):
     template_name = 'artists/register_artist.html'
@@ -107,10 +149,11 @@ class DeleteArtistAPI(APIView):
 
 
 class FetchSimilarArtist(APIView):
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [IsAuthenticated()]
-        return []
+    # def get_permissions(self):
+    #     if self.request.method == 'POST':
+    #         return [IsAuthenticated()]
+    #     return []
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         artist_name = request.GET.get('artist_name', '')
         similar_artists = Artists.objects.filter(name__icontains=artist_name).values_list('name', 'pk')

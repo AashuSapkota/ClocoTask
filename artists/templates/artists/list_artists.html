@@ -1,125 +1,182 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 <div class="container-fluid mt--6">
-    <div class="row">
-      <div class="col-xl-8">
-        <div class="card bg-default">
-          <div class="card-header bg-transparent">
-            <div class="row align-items-center">
-              <div class="col">
-                <h5 class="h3 text-white mb-0 text-uppercase">
-                  Artists List
-                </h5>
-              </div>
-              <div class="col text-right">
-                <h5 class="h3 text-white mb-0 text-uppercase">
-                    <a href="{% url 'artists:register_artist' %}" class="btn btn-primary">Create Artist</a>
-                </h5>
-              </div>
+  <div class="row">
+    <div class="col-xl-8">
+      <div class="card bg-default">
+        <div class="card-header bg-transparent">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="h3 text-white mb-0 text-uppercase">
+                Artists List
+              </h5>
+            </div>
+            <div class="col text-right">
+              <h5 class="h3 text-white mb-0 text-uppercase">
+                <a href="{% url 'artists:register_artist' %}" class="btn btn-primary" id="artist_create">Create
+                  Artist</a>
+                <a href="#" class="btn btn-primary" id="artist_upload">Upload Artists</a>
+                <a href="#" class="btn btn-primary" id="artist_export">Export Artists</a>
+              </h5>
             </div>
           </div>
-          <div class="card-body">
-            <table class="table" id="artist-table">
-            </table>
-          </div>
+        </div>
+        <div class="card-body">
+          <table class="table" id="artist-table">
+          </table>
         </div>
       </div>
     </div>
   </div>
 </div>
+</div>
 {% endblock body %}
 {% block js %}
 <script>
-    const loginUrl = "{% url 'users:login' %}"
-    const listUrl = "{% url 'artists:list_artist' %}"
-    $(document).ready(function () {
-        console.log('here')
-        const accessToken = localStorage.getItem('access_token');
-        var table = document.getElementById('artist-table');
-        $.ajax({
-            url: listUrl,
-            type: 'POST',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            },
-            success: function (response) {
-                console.log(response)
-                table.innerHTML = '';
-                var thead = document.createElement('thead');
-                var tr = document.createElement('tr');
-                tr.innerHTML = '<th scope="col">Name</th><th scope="col">DOB</th><th scope="col">Gender</th><th scope="col">Address</th><th scope="col">FirstYearRelease</th><th scope="col">No.of Albums Released</th><th scope="col">Actions</th>';
-                thead.appendChild(tr);
-                table.appendChild(thead);
-
-                // Create table body
-                var tbody = document.createElement('tbody');
-                response.results.forEach(function (artist) {
-                    var tr = document.createElement('tr');
-                    var editUrl = '{% url "artists:update_artist" artist_id=0 %}'.replace('0', artist.id);
-                    console.log(editUrl)
-                    var deleteUrl = '{% url "artists:delete_artist" artist_id=0 %}'.replace('0', artist.id);
-                    var songsUrl = '{% url "artists:list_artist_music" artist_id=0 %}'.replace('0', artist.id);
-                    console.log(deleteUrl)
-                    tr.innerHTML = '<td>' + artist.name + 
-                        '</td><td>' + formatDOB(artist.dob) +
-                        '</td><td>' + artist.gender +
-                        '</td><td>' + artist.address +
-                        '</td><td>' + artist.first_release_year +
-                        '</td><td>' + artist.no_of_albums_released +
-                        '</td>' + '<td><a class="edit-button" href="' + editUrl + '">Edit</a>' +
-                        " " + '<a class="delete-button" href="' + deleteUrl + '" data-deleteurl="' + deleteUrl + '">Delete</a>' +
-                        " " + '<a class="songs-button" href="' + songsUrl + '" data-deleteurl="' + songsUrl + '">Songs</a><td>' +
-                        " " + '<td>' +
-                        '<td hidden class="artist_id">' + artist.id + '</td>';
-                    tbody.appendChild(tr);
-                });
-                table.appendChild(tbody);
-                // Function to format the date of birth
-                function formatDOB(dob) {
-                    var date = new Date(dob);
-                    var year = date.getFullYear();
-                    var month = ('0' + (date.getMonth() + 1)).slice(-2); // Add leading zero if needed
-                    var day = ('0' + date.getDate()).slice(-2); // Add leading zero if needed
-                    return year + '-' + month + '-' + day;
-                }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                if (xhr.status == 401) {
-                    window.location.href = loginUrl;
-                };
-            }
-        })
-    });
-
+  const loginUrl = "{% url 'users:login' %}"
+  const listUrl = "{% url 'artists:list_artist' %}"
+  $(document).ready(function () {
+    const accessToken = localStorage.getItem('access_token');
     var table = document.getElementById('artist-table');
-    table.addEventListener('click', function (event) {
-        if (event.target.classList.contains('delete-button')) {
-            event.preventDefault();
-            var confirmDelete = confirm('Are you sure you want to delete this artist?');
-            if (confirmDelete) {
-                var deleteUrl = event.target.dataset.deleteurl;
-                var accessToken = localStorage.getItem('access_token');
-                console.log("deleteurl: ", deleteUrl)
-                $.ajax({
-                    url: deleteUrl,
-                    method: 'DELETE',
-                    contentType: 'application/json',
-                    headers: {
-                        'Authorization': 'Bearer ' + accessToken
-                    },
-                    success: function (response) {
-                        console.log("Response", response.Status)
-                        if (response.Status === 'Success') {
-                            window.location.href = listUrl;
-                        }
-                    },
-                    error: function (xhr, textStatus, errorThrown) {
-                        console.log(xhr)
-                    }
-                })
-            }
+    $.ajax({
+      url: listUrl,
+      type: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+      success: function (response) {
+        console.log(response)
+        table.innerHTML = '';
+        var thead = document.createElement('thead');
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<th scope="col">Name</th><th scope="col">DOB</th><th scope="col">Gender</th><th scope="col">Address</th><th scope="col">FirstYearRelease</th><th scope="col">No.of Albums Released</th><th scope="col">Actions</th>';
+        thead.appendChild(tr);
+        table.appendChild(thead);
+
+        // Create table body
+        var tbody = document.createElement('tbody');
+        response.results.forEach(function (artist) {
+          var tr = document.createElement('tr');
+          var editUrl = '{% url "artists:update_artist" artist_id=0 %}'.replace('0', artist.id);
+          console.log(editUrl)
+          var deleteUrl = '{% url "artists:delete_artist" artist_id=0 %}'.replace('0', artist.id);
+          var songsUrl = '{% url "artists:list_artist_music" artist_id=0 %}'.replace('0', artist.id);
+          console.log(deleteUrl)
+          tr.innerHTML = '<td>' + artist.name +
+            '</td><td>' + formatDOB(artist.dob) +
+            '</td><td>' + artist.gender +
+            '</td><td>' + artist.address +
+            '</td><td>' + artist.first_release_year +
+            '</td><td>' + artist.no_of_albums_released +
+            '</td>' + '<td><a class="edit-button" href="' + editUrl + '">Edit</a>' +
+            " " + '<a class="delete-button" href="' + deleteUrl + '" data-deleteurl="' + deleteUrl + '">Delete</a>' +
+            " " + '<a class="songs-button" href="' + songsUrl + '" data-deleteurl="' + songsUrl + '">Songs</a><td>' +
+            " " + '<td>' +
+            '<td hidden class="artist_id">' + artist.id + '</td>';
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        // Function to format the date of birth
+        function formatDOB(dob) {
+          var date = new Date(dob);
+          var year = date.getFullYear();
+          var month = ('0' + (date.getMonth() + 1)).slice(-2); // Add leading zero if needed
+          var day = ('0' + date.getDate()).slice(-2); // Add leading zero if needed
+          return year + '-' + month + '-' + day;
         }
+      },
+      error: function (xhr, textStatus, errorThrown) {
+        if (xhr.status == 401) {
+          window.location.href = loginUrl;
+        };
+      }
     });
+
+    // upload artists -- CSV file
+    $("#artist_upload").click(function (e) {
+      e.preventDefault(); // Prevent the default behavior of the link
+      const requestUrl = "{% url 'artists:upload_artists_csv' %}";
+      const successUrl = "{% url 'artists:list_artist' %}"
+      const accessToken = localStorage.getItem('access_token');
+
+      // Create a file input element dynamically
+      var fileInput = $("<input>").attr("type", "file");
+
+      // Trigger the file selection dialog when the file input is clicked
+      fileInput.click();
+
+      // Listen for changes in the file input
+      fileInput.change(function () {
+        var file = fileInput.prop("files")[0]; // Get the selected file
+
+        if (file) {
+          var formData = new FormData(); // Create a new FormData object
+          formData.append("file", file); // Append the file to the FormData object
+
+          // Send a POST request to the desired URL
+          $.ajax({
+            url: requestUrl,
+            type: "POST",
+            headers: {
+              'Authorization': 'Bearer ' + accessToken
+            },
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              console.log("File uploaded successfully!");
+              window.location.href = successUrl;
+            },
+            error: function (error) {
+              console.error("Error uploading file:", error);
+              // Handle the error condition as needed
+            }
+          });
+        }
+      });
+    });
+  
+  
+
+    // export artists -- CSV file
+    $('#artist_export').click(function(e){
+      const requestUrl = "{% url 'artists:export_artists_csv' %}"
+      e.preventDefault();
+      // CSV file that is automatically downloaded by the browser due to the Content-Disposition header
+      window.location.href = requestUrl
+    })
+  });
+
+
+  var table = document.getElementById('artist-table');
+  table.addEventListener('click', function (event) {
+    if (event.target.classList.contains('delete-button')) {
+      event.preventDefault();
+      var confirmDelete = confirm('Are you sure you want to delete this artist?');
+      if (confirmDelete) {
+        var deleteUrl = event.target.dataset.deleteurl;
+        var accessToken = localStorage.getItem('access_token');
+        console.log("deleteurl: ", deleteUrl)
+        $.ajax({
+          url: deleteUrl,
+          method: 'DELETE',
+          contentType: 'application/json',
+          headers: {
+            'Authorization': 'Bearer ' + accessToken
+          },
+          success: function (response) {
+            console.log("Response", response.Status)
+            if (response.Status === 'Success') {
+              window.location.href = listUrl;
+            }
+          },
+          error: function (xhr, textStatus, errorThrown) {
+            console.log(xhr)
+          }
+        })
+      }
+    }
+  });
 </script>
 
 {% endblock js %}
