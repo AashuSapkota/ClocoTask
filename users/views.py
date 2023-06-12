@@ -15,6 +15,19 @@ from rest_framework.decorators import permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
+class GetUserInfo(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, *args, **kwargs):
+        try:
+            user = request.user
+            user_email = user.email
+            return Response({'Status': 'Success', 'Message': user_email}, status=200)
+        except Exception as e:
+            return Response({'Status': 'Error', 'Message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
 class UserLogin(APIView):
     template_name = 'registration/login.html'
     permission_classes = [AllowAny]

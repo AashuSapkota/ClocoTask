@@ -11,10 +11,12 @@ from rest_framework import serializers
 from rest_framework.parsers import FileUploadParser
 import csv
 from django.http import HttpResponse
+from rest_framework.settings import api_settings
 
 # Create your views here.
 
 class ArtistsUploadAPI(APIView):
+    permission_classes = [IsAuthenticated]
     parser_class = (FileUploadParser,)
 
     def post(self, request, format=None):
@@ -90,7 +92,8 @@ class ListArtistsAPI(APIView):
     def post(self, request, *args, **kwargs):
         artists = Artists.objects.all()
         paginator = self.pagination_class()
-        paginator.page_size = 5
+        page_size = api_settings.PAGE_SIZE
+        paginator.page_size = page_size
         paginated_users = paginator.paginate_queryset(artists, request)
         serializer = self.serializer_class(paginated_users, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -133,10 +136,6 @@ class UpdateArtistAPI(APIView):
 
 class DeleteArtistAPI(APIView):
     permission_classes = [IsAuthenticated]
-    # def get_permissions(self):
-    #     if self.request.method == 'delete':
-    #         return [IsAuthenticated()]
-    #     return []
 
     def delete(self, request, artist_id, *args, **kwargs):
         try:
@@ -165,6 +164,7 @@ class ListArtistMusicAPI(APIView):
     pagination_class = PageNumberPagination
     serializer_class = MusicSerializer
     template_name = 'artists/list_artists_music.html'
+    permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -181,7 +181,8 @@ class ListArtistMusicAPI(APIView):
         musics = Music.objects.filter(artist_id=artist_id)
         print(musics)
         paginator = self.pagination_class()
-        paginator.page_size = 2
+        page_size = api_settings.PAGE_SIZE
+        paginator.page_size = page_size
         paginated_users = paginator.paginate_queryset(musics, request)
         serializer = self.serializer_class(paginated_users, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -199,15 +200,6 @@ class RegisterMusicAPI(APIView):
     def get(self, request, *args, **kwargs):
         artist_id = kwargs["artist_id"]
         genre_choices = Music.GENRE_CHOICES
-        for choice in genre_choices:
-            print(choice)
-            print(choice[0])
-            print(choice[1])
-
-        # artist_name = request.GET.get('artist_name', '')
-        # similar_artists = Artists.objects.filter(name__icontains=artist_name).values_list('name', 'pk')
-        # print(similar_artists)
-        # return render(request, self.template_name, {'genre_choices': genre_choices, 'similar_artists':similar_artists})
         return render(request, self.template_name, {'genre_choices': genre_choices, 'artist_id': artist_id})
     def post(self, request, *args, **kwargs):
         serializer = MusicSerializer(data=request.data)
@@ -222,10 +214,6 @@ class RegisterMusicAPI(APIView):
 
 class DeleteArtistMusicAPI(APIView):
     permission_classes = [IsAuthenticated]
-    # def get_permissions(self):
-    #     if self.request.method == 'delete':
-    #         return [IsAuthenticated()]
-    #     return []
 
     def delete(self, request, *args, **kwargs):
         music_id = kwargs["music_id"]

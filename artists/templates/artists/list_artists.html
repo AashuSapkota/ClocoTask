@@ -24,6 +24,24 @@
         <div class="card-body">
           <table class="table" id="artist-table">
           </table>
+          <div id="pagination">
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" id="previous-page">
+                  <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Previous</span>
+                  </a>
+                </li>
+                <li class="page-item" id="next-page">
+                  <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="sr-only">Next</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
@@ -37,59 +55,92 @@
   const listUrl = "{% url 'artists:list_artist' %}"
   $(document).ready(function () {
     const accessToken = localStorage.getItem('access_token');
-    var table = document.getElementById('artist-table');
-    $.ajax({
-      url: listUrl,
-      type: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      },
-      success: function (response) {
-        console.log(response)
-        table.innerHTML = '';
-        var thead = document.createElement('thead');
-        var tr = document.createElement('tr');
-        tr.innerHTML = '<th scope="col">Name</th><th scope="col">DOB</th><th scope="col">Gender</th><th scope="col">Address</th><th scope="col">FirstYearRelease</th><th scope="col">No.of Albums Released</th><th scope="col">Actions</th>';
-        thead.appendChild(tr);
-        table.appendChild(thead);
+    const table = document.getElementById('artist-table');
+    const previousPageLink = document.getElementById('previous-page');
+    const nextPageLink = document.getElementById('next-page');
+    let currentPage = 1;
 
-        // Create table body
-        var tbody = document.createElement('tbody');
-        response.results.forEach(function (artist) {
+    function loadArtists(page) {
+      $.ajax({
+        url: listUrl + `?page=${page}`, // Append page number to the URL
+        type: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        success: function (response) {
+          console.log(response)
+          table.innerHTML = '';
+          var thead = document.createElement('thead');
           var tr = document.createElement('tr');
-          var editUrl = '{% url "artists:update_artist" artist_id=0 %}'.replace('0', artist.id);
-          console.log(editUrl)
-          var deleteUrl = '{% url "artists:delete_artist" artist_id=0 %}'.replace('0', artist.id);
-          var songsUrl = '{% url "artists:list_artist_music" artist_id=0 %}'.replace('0', artist.id);
-          console.log(deleteUrl)
-          tr.innerHTML = '<td>' + artist.name +
-            '</td><td>' + formatDOB(artist.dob) +
-            '</td><td>' + artist.gender +
-            '</td><td>' + artist.address +
-            '</td><td>' + artist.first_release_year +
-            '</td><td>' + artist.no_of_albums_released +
-            '</td>' + '<td><a class="edit-button" href="' + editUrl + '">Edit</a>' +
-            " " + '<a class="delete-button" href="' + deleteUrl + '" data-deleteurl="' + deleteUrl + '">Delete</a>' +
-            " " + '<a class="songs-button" href="' + songsUrl + '" data-deleteurl="' + songsUrl + '">Songs</a><td>' +
-            " " + '<td>' +
-            '<td hidden class="artist_id">' + artist.id + '</td>';
-          tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-        // Function to format the date of birth
-        function formatDOB(dob) {
-          var date = new Date(dob);
-          var year = date.getFullYear();
-          var month = ('0' + (date.getMonth() + 1)).slice(-2); // Add leading zero if needed
-          var day = ('0' + date.getDate()).slice(-2); // Add leading zero if needed
-          return year + '-' + month + '-' + day;
+          tr.innerHTML = '<th scope="col">Name</th><th scope="col">DOB</th><th scope="col">Gender</th><th scope="col">Address</th><th scope="col">FirstYearRelease</th><th scope="col">No.of Albums Released</th><th scope="col">Actions</th>';
+          thead.appendChild(tr);
+          table.appendChild(thead);
+
+          // Create table body
+          var tbody = document.createElement('tbody');
+          response.results.forEach(function (artist) {
+            var tr = document.createElement('tr');
+            var editUrl = '{% url "artists:update_artist" artist_id=0 %}'.replace('0', artist.id);
+            console.log(editUrl)
+            var deleteUrl = '{% url "artists:delete_artist" artist_id=0 %}'.replace('0', artist.id);
+            var songsUrl = '{% url "artists:list_artist_music" artist_id=0 %}'.replace('0', artist.id);
+            console.log(deleteUrl)
+            tr.innerHTML = '<td>' + artist.name +
+              '</td><td>' + formatDOB(artist.dob) +
+              '</td><td>' + artist.gender +
+              '</td><td>' + artist.address +
+              '</td><td>' + artist.first_release_year +
+              '</td><td>' + artist.no_of_albums_released +
+              '</td>' + '<td><a class="edit-button" href="' + editUrl + '">Edit</a>' +
+              " " + '<a class="delete-button" href="' + deleteUrl + '" data-deleteurl="' + deleteUrl + '">Delete</a>' +
+              " " + '<a class="songs-button" href="' + songsUrl + '" data-deleteurl="' + songsUrl + '">Songs</a><td>' +
+              " " + '<td>' +
+              '<td hidden class="artist_id">' + artist.id + '</td>';
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+
+          // Function to format the date of birth
+          function formatDOB(dob) {
+            var date = new Date(dob);
+            var year = date.getFullYear();
+            var month = ('0' + (date.getMonth() + 1)).slice(-2); // Add leading zero if needed
+            var day = ('0' + date.getDate()).slice(-2); // Add leading zero if needed
+            return year + '-' + month + '-' + day;
+          }
+
+          // Enable or disable pagination links based on response
+          previousPageLink.classList.toggle('disabled', response.previous === null);
+          nextPageLink.classList.toggle('disabled', response.next === null);
+        },
+        error: function (xhr, textStatus, errorThrown) {
+          if (xhr.status == 401) {
+            window.location.href = loginUrl;
+          };
         }
-      },
-      error: function (xhr, textStatus, errorThrown) {
-        if (xhr.status == 401) {
-          window.location.href = loginUrl;
-        };
+      });
+    }
+
+    // Load artists for the initial page
+    loadArtists(currentPage);
+
+    // Handle previous page click event
+    previousPageLink.addEventListener('click', function (event) {
+      event.preventDefault();
+      if (currentPage > 1) {
+        currentPage--;
+        loadArtists(currentPage);
       }
+    });
+
+    // Handle next page click event
+    nextPageLink.addEventListener('click', function (event) {
+      event.preventDefault();
+      if (nextPageLink.classList.contains('disabled')) {
+        return;
+      }
+      currentPage++;
+      loadArtists(currentPage);
     });
 
     // upload artists -- CSV file
@@ -135,11 +186,11 @@
         }
       });
     });
-  
-  
+
+
 
     // export artists -- CSV file
-    $('#artist_export').click(function(e){
+    $('#artist_export').click(function (e) {
       const requestUrl = "{% url 'artists:export_artists_csv' %}"
       e.preventDefault();
       // CSV file that is automatically downloaded by the browser due to the Content-Disposition header
