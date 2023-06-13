@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
         if not value.isdigit() or len(value) != 10:
             raise serializers.ValidationError({
                 "Status": "Error",
-                "Message":"Invalid phone number. Must contain 10 digits."
+                "Message":"Invalid phone number. Must contain only numbers with 10 digits."
             })
             return value
     

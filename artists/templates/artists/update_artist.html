@@ -24,7 +24,7 @@
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
                         <input class="form-control" placeholder="Name" id="artist_name" type="text"
-                            value="{{artist.name}}">
+                            value="{{artist.name}}" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -33,7 +33,7 @@
                             <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i></span>
                         </div>
                         <input id="dob-input" class="form-control" placeholder="DOB" type="text"
-                            value="{{artist.dob|date:'Y-m-d'}}">
+                            value="{{artist.dob|date:'Y-m-d'}}" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -54,7 +54,7 @@
                             <span class="input-group-text"><i class="ni ni-pin-3"></i></span>
                         </div>
                         <input class="form-control" placeholder="Address" id="address" type="text"
-                            value="{{artist.address}}">
+                            value="{{artist.address}}" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -63,7 +63,7 @@
                             <span class="input-group-text"><i class="ni ni-notification-70"></i></span>
                         </div>
                         <input class="form-control" placeholder="FirstYearRelease" id="first_year_release" type="text"
-                            value="{{artist.first_release_year}}">
+                            value="{{artist.first_release_year}}" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -72,7 +72,7 @@
                             <span class="input-group-text"><i class="ni ni-sound-wave"></i></span>
                         </div>
                         <input class="form-control" placeholder="No of Albums Released" id="no_of_albums_released" type="text"
-                            value="{{artist.no_of_albums_released}}">
+                            value="{{artist.no_of_albums_released}}" required>
                     </div>
                 </div>
                 <div class="text-center">
@@ -137,7 +137,10 @@
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    console.log(xhr)
+                    console.log(xhr, textStatus)
+                    var errorResponse = JSON.parse(xhr.responseText);
+                    var errorMessage = errorResponse.Message;
+                    alert(errorMessage)
                 }
             })
         })

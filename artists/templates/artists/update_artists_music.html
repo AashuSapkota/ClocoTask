@@ -24,7 +24,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="ArtistTitle" id="artist_title" type="text" value="{{music.title}}">
+                        <input class="form-control" placeholder="ArtistTitle" id="artist_title" type="text" value="{{music.title}}" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -32,7 +32,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="AlbumName" id="album_name" type="text" value="{{music.album_name}}">
+                        <input class="form-control" placeholder="AlbumName" id="album_name" type="text" value="{{music.album_name}}" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -99,7 +99,10 @@
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    console.log(xhr)
+                    console.log(xhr, textStatus)
+                    var errorResponse = JSON.parse(xhr.responseText);
+                    var errorMessage = errorResponse.Message;
+                    alert(errorMessage)
                 }
             })
         })

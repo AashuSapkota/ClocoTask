@@ -22,7 +22,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="Name" id="artist_name" type="text">
+                        <input class="form-control" placeholder="Name" id="artist_name" type="text" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -30,7 +30,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i></span>
                         </div>
-                        <input id="dob-input" class="form-control" placeholder="DOB" type="text">
+                        <input id="dob-input" class="form-control" placeholder="DOB" type="text" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -50,7 +50,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-pin-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="Address" id="address" type="text">
+                        <input class="form-control" placeholder="Address" id="address" type="text" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -59,7 +59,7 @@
                             <span class="input-group-text"><i class="ni ni-notification-70"></i></span>
                         </div>
                         <input class="form-control" placeholder="FirstYearRelease" id="first_year_release" type="text"
-                            >
+                            required >
                     </div>
                 </div>
                 <div class="form-group">
@@ -68,7 +68,7 @@
                             <span class="input-group-text"><i class="ni ni-sound-wave"></i></span>
                         </div>
                         <input class="form-control" placeholder="No of Albums Released" id="no_of_albums_released" type="text"
-                           >
+                           required >
                     </div>
                 </div>
                 <div class="text-center">
@@ -133,7 +133,10 @@
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    console.log(xhr)
+                    console.log(xhr, textStatus)
+                    var errorResponse = JSON.parse(xhr.responseText);
+                    var errorMessage = errorResponse.Message;
+                    alert(errorMessage)
                 }
             })
         })

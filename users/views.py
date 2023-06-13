@@ -108,6 +108,7 @@ class UserLogout(APIView):
         except Exception as e:
             return Response({"Status":"Error", "Message":str(e)}, status=200)
 
+
 class ListUsersAPI(APIView):
     pagination_class = PageNumberPagination
     serializer_class = UserSerializer
@@ -141,7 +142,7 @@ class RegisterUserAPI(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({'Status': 'Success', 'Message': 'User Created Successfully'}, status=201)
-        return Response({'Status': 'Error', 'Message': serializer.errors}, status=400)
+        return Response({'Status': 'Error', 'Message': str(serializer.errors)}, status=400)
 
 
 class UpdateUserAPI(APIView):

@@ -158,7 +158,10 @@
             }
           },
           error: function (xhr, textStatus, errorThrown) {
-            console.log(xhr)
+            console.log(xhr, textStatus)
+            var errorResponse = JSON.parse(xhr.responseText);
+            var errorMessage = errorResponse.Message;
+            alert(errorMessage)
           }
         })
       }

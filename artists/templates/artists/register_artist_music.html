@@ -23,7 +23,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="ArtistTitle" id="artist_title" type="text">
+                        <input class="form-control" placeholder="ArtistTitle" id="artist_title" type="text" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -31,7 +31,7 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
                         </div>
-                        <input class="form-control" placeholder="AlbumName" id="album_name" type="text">
+                        <input class="form-control" placeholder="AlbumName" id="album_name" type="text" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -97,7 +97,10 @@
                     }
                 },
                 error: function (xhr, textStatus, errorThrown) {
-                    console.log(xhr)
+                    console.log(xhr, textStatus)
+                    var errorResponse = JSON.parse(xhr.responseText);
+                    var errorMessage = errorResponse.Message;
+                    alert(errorMessage)
                 }
             })
         })

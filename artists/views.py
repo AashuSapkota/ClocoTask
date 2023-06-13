@@ -31,7 +31,7 @@ class ArtistsUploadAPI(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({'Status': 'Success', 'Message': 'Artists Uploaded Successfully'}, status=201)
-        return Response({'Status':'Error', 'Message':serializer.errors}, status=400)
+        return Response({'Status':'Error', 'Message':str(serializer.errors)}, status=400)
 
 
 class ArtistsExportAPI(APIView):
@@ -72,7 +72,7 @@ class RegisterArtistAPI(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({'Status': 'Success', 'Message': 'Artist Added Successfully'}, status=201)
-        return Response({'Status': 'Error', 'Message': serializer.errors}, status=400)
+        return Response({'Status': 'Error', 'Message': str(serializer.errors)}, status=400)
 
 
 
@@ -127,7 +127,7 @@ class UpdateArtistAPI(APIView):
                 # return Response(serializer.data)
                 return Response({'Status': 'Success', 'Message': 'Artist Updated Succesfully'}, status=200)
             else:
-                return Response({'Status': 'Error', 'Message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Status': 'Error', 'Message': str(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
         except Artists.DoesNotExist:
             return Response({'Status': 'Error', 'Message': 'Artist does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
