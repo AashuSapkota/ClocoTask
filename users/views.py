@@ -165,6 +165,7 @@ class UpdateUserAPI(APIView):
             print('user does not exists')
     def put(self, request, *args, **kwargs):
         id = kwargs['user_id']
+        print(request.data)
         try:
             user = User.objects.get(pk=id)
             serializer = UserSerializer(user, data=request.data)
@@ -174,10 +175,11 @@ class UpdateUserAPI(APIView):
                 # return Response(serializer.data)
                 return Response({'Status': 'Success', 'Message': 'User Updated Succesfully'}, status=200)
             else:
-                return Response({'Status': 'Error', 'Message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Status': 'Error', 'Message': str(serializer.errors)}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({'Status': 'Error', 'Message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            print(str(e))
             return Response({'Status': 'Error', 'Message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

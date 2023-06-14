@@ -35,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
                 "Status": "Error",
                 "Message":"Invalid phone number. Must contain only numbers with 10 digits."
             })
-            return value
+        return value
     
     def validate_email(self, value):
         if not re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', value):
@@ -43,4 +43,4 @@ class UserSerializer(serializers.ModelSerializer):
                 "Status": "Error",
                 "Message":"Invalid Email Format"
             })
-            return value
+        return value
